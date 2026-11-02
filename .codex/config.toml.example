@@ -1,0 +1,9 @@
+# Plantilla opcional: copiar a .codex/config.toml cuando se desee activar.
+# Requiere uvx y DATABASE_URI en el entorno del proceso de Codex.
+# No escribir credenciales en este archivo.
+[mcp_servers.postgres]
+command = "uvx"
+args = ["postgres-mcp", "--access-mode=restricted"]
+env_vars = ["DATABASE_URI"]
+startup_timeout_sec = 60
+tool_timeout_sec = 30
