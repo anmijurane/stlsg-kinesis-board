@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+*.log
+.env*
+!.env.example
+.codex/config.toml
+.agents/
+.mcp.json
+.vercel/
