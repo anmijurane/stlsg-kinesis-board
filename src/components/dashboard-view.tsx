@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import Link from "next/link";
 import type { ClubOption, GlobalMetrics, SessionDetail, SessionFilterOptions, SessionsPaginatedResult, SessionSummary } from "@/lib/database/types";
 import { fetchSessionsAction, fetchSessionDetailAction } from "@/app/actions";
 import { DashboardHeader } from "./dashboard-header";
@@ -18,7 +19,7 @@ interface DashboardViewProps {
 const DEFAULT_FILTERS: SessionFilterOptions = { page: 1, pageSize: 20 };
 
 export function DashboardView({ initialMetrics, initialClubs, initialSessionsResult, isConnected }: DashboardViewProps) {
-  const [activeTab, setActiveTab] = useState<"metrics" | "sessions">("sessions");
+  const activeTab: "metrics" | "sessions" = "sessions";
   const [filters, setFilters] = useState<SessionFilterOptions>(DEFAULT_FILTERS);
   const [filterRevision, setFilterRevision] = useState(0);
   const [sessionsData, setSessionsData] = useState(initialSessionsResult);
@@ -60,20 +61,22 @@ export function DashboardView({ initialMetrics, initialClubs, initialSessionsRes
       if (request === detailRequest.current) setIsLoadingDetail(false);
     }
   };
-  return <div className="dashboard-shell">
-    <DashboardHeader activeTab={activeTab} onTabChange={setActiveTab} isConnected={isConnected} />
-    <main id="dashboard-content" className={`dashboard-workspace ${activeTab === "sessions" ? "with-journey" : ""}`}>
-      <div className="dashboard-content">
-        <div className="page-heading-row"><div><h1>{activeTab === "sessions" ? "Explorador de sesiones" : "Resumen de actividad"}</h1><p>{activeTab === "sessions" ? "Explora la navegación, página por página." : "Una mirada al uso de la plataforma."}</p></div><button type="button" className="text-button" onClick={() => setActiveTab(activeTab === "sessions" ? "metrics" : "sessions")}>{activeTab === "sessions" ? "Ver resumen" : "Ver sesiones"}</button></div>
-        {!isConnected && <div className="connection-notice" role="status"><strong>Los datos no están disponibles</strong><p>Cuando se restablezca la conexión, recarga la página para consultar la actividad.</p></div>}
-        <MetricsSummary metrics={initialMetrics} />
-        {activeTab === "sessions" ? <>
-          <SessionFilterBar key={filterRevision} clubs={initialClubs} filters={filters} onFilterChange={(updated) => loadSessions({ ...filters, ...updated })} onReset={resetFilters} isLoading={isPending} />
-          {sessionsError ? <div className="connection-notice" role="alert"><p>{sessionsError}</p></div> : <SessionsTable sessions={sessionsData.sessions} total={sessionsData.total} page={sessionsData.page} pageSize={sessionsData.pageSize} totalPages={sessionsData.totalPages} onPageChange={(page) => loadSessions({ ...filters, page })} onSelectSession={selectSession} onReset={resetFilters} selectedId={selectedId} isLoading={isPending} />}
-          {initialMetrics && <MetricsOverview metrics={initialMetrics} compact />}
-        </> : initialMetrics ? <MetricsOverview metrics={initialMetrics} /> : <p className="section-empty">El resumen estará disponible cuando haya datos.</p>}
-      </div>
-      {activeTab === "sessions" && <SessionJourneyPanel key={selectedId ?? "empty"} detail={selectedDetail} selectedId={selectedId} isLoading={isLoadingDetail} onClose={() => { const previous = selectedId; clearSelection(); document.getElementById(`session-${previous}`)?.focus(); }} />}
-    </main>
-  </div>;
+  return (
+    <div className="dashboard-shell">
+      <DashboardHeader activeTab={activeTab} isConnected={isConnected} />
+      <main id="dashboard-content" className={`dashboard-workspace ${activeTab === "sessions" ? "with-journey" : ""}`}>
+        <div className="dashboard-content">
+          <div className="page-heading-row"><div><h1>{activeTab === "sessions" ? "Explorador de sesiones" : "Resumen de actividad"}</h1><p>{activeTab === "sessions" ? "Explora la navegación, página por página." : "Una mirada al uso de la plataforma."}</p></div><Link className="text-button" href="/resumen">Ver resumen</Link></div>
+          {!isConnected && <div className="connection-notice" role="status"><strong>Los datos no están disponibles</strong><p>Cuando se restablezca la conexión, recarga la página para consultar la actividad.</p></div>}
+          <MetricsSummary metrics={initialMetrics} />
+          {activeTab === "sessions" ? <>
+            <SessionFilterBar key={filterRevision} clubs={initialClubs} filters={filters} onFilterChange={(updated) => loadSessions({ ...filters, ...updated })} onReset={resetFilters} isLoading={isPending} />
+            {sessionsError ? <div className="connection-notice" role="alert"><p>{sessionsError}</p></div> : <SessionsTable sessions={sessionsData.sessions} total={sessionsData.total} page={sessionsData.page} pageSize={sessionsData.pageSize} totalPages={sessionsData.totalPages} onPageChange={(page) => loadSessions({ ...filters, page })} onSelectSession={selectSession} onReset={resetFilters} selectedId={selectedId} isLoading={isPending} />}
+            {initialMetrics && <MetricsOverview metrics={initialMetrics} compact />}
+          </> : initialMetrics ? <MetricsOverview metrics={initialMetrics} /> : <p className="section-empty">El resumen estará disponible cuando haya datos.</p>}
+        </div>
+        {activeTab === "sessions" && <SessionJourneyPanel key={selectedId ?? "empty"} detail={selectedDetail} selectedId={selectedId} isLoading={isLoadingDetail} onClose={() => { const previous = selectedId; clearSelection(); document.getElementById(`session-${previous}`)?.focus(); }} />}
+      </main>
+    </div>
+  );
 }

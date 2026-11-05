@@ -20,11 +20,19 @@ export function SessionFilterBar({ clubs, filters, onFilterChange, onReset, isLo
       onFilterChange({ ...draft, search: draft.search?.trim() || undefined, page: 1 });
     }}>
       <div className="section-heading">
-        <div><h2 id="filters-title">Filtrar sesiones</h2><p>Filtra la tabla por sesión, sede, rutina o fecha.</p></div>
-        <div className="filter-heading-actions"><button type="button" className="text-button" disabled={isLoading} onClick={() => {
-          setDraft({ page: 1, pageSize: 20 });
-          onReset();
-        }}>Limpiar filtros</button><button type="submit" className="primary-button" disabled={isLoading}>{isLoading ? "Aplicando…" : "Aplicar filtros"}</button></div>
+        <div>
+          <h2 id="filters-title">Filtrar sesiones</h2>
+          <p>Filtra la tabla por sesión, sede, rutina o fecha.</p>
+        </div>
+        <div className="filter-heading-actions">
+          <button type="button" className="text-button" disabled={isLoading} onClick={() => {
+            setDraft({ page: 1, pageSize: 20 });
+            onReset();
+          }}>
+            Limpiar filtros
+          </button>
+          <button type="submit" className="primary-button" disabled={isLoading}>{isLoading ? "Aplicando…" : "Aplicar filtros"}</button>
+        </div>
       </div>
       <div className="filter-grid">
         <label>Buscar sesión<input type="search" placeholder="ID o UUID de sesión" value={draft.search || ""} onChange={(e) => update({ search: e.target.value })} /></label>

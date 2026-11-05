@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 interface DashboardHeaderProps {
   activeTab: "metrics" | "sessions";
-  onTabChange: (tab: "metrics" | "sessions") => void;
   isConnected: boolean;
 }
 
-export function DashboardHeader({ activeTab, onTabChange, isConnected }: DashboardHeaderProps) {
+export function DashboardHeader({ activeTab, isConnected }: DashboardHeaderProps) {
   return (
     <header className="dashboard-navigation">
       <a href="#dashboard-content" className="skip-link">Saltar al contenido</a>
@@ -19,14 +19,17 @@ export function DashboardHeader({ activeTab, onTabChange, isConnected }: Dashboa
           width="200"
           height="100"
           priority
-        // className="dashboard-brand-logo"
+          style={{ width: "100%", height: "auto" }}
         />
       </div>
+      <div className="flex w-full justify-center items-center py-2">
+        <h2 className="font-mono">SITELSEG® KINESIS</h2>
+      </div>
+      <hr className="mx-2" />
       <nav aria-label="Navegación del dashboard">
-        <button type="button" aria-current={activeTab === "metrics" ? "page" : undefined} onClick={() => onTabChange("metrics")}>Resumen</button>
-        <button type="button" aria-current={activeTab === "sessions" ? "page" : undefined} onClick={() => onTabChange("sessions")}>Sesiones</button>
+        <Link href="/resumen" aria-current={activeTab === "metrics" ? "page" : undefined}>Resumen</Link>
+        <Link href="/sesiones" aria-current={activeTab === "sessions" ? "page" : undefined}>Sesiones</Link>
       </nav>
-      <p className="connection-status">{isConnected ? "Datos disponibles" : "Sin conexión"}<span>Panel de análisis</span></p>
     </header>
   );
 }
