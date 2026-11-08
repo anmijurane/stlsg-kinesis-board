@@ -1,53 +1,21 @@
-import {
-  getGlobalMetrics,
-  getAvailableClubs,
-  getFilteredSessions,
-} from "@/lib/database/queries";
-import { DashboardView } from "@/components/dashboard-view";
-import type { SessionsPaginatedResult } from "@/lib/database/types";
+import type { Metadata } from "next";
+import { LandingHero } from "@/components/landing/landing-hero";
+import { LandingPillars } from "@/components/landing/landing-pillars";
 
-export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Kinesis Sitelseg | Telecomunicaciones y seguridad",
+  description:
+    "Kinesis Sitelseg: plataforma de análisis de Sitelseg. Inicia sesión para acceder.",
+};
 
-export default async function Home() {
-  const hasDbUrl = Boolean(process.env.DATABASE_URL?.trim());
-
-  let metrics = null;
-  let clubs: Awaited<ReturnType<typeof getAvailableClubs>> = [];
-  let sessionsResult: SessionsPaginatedResult = {
-    sessions: [],
-    total: 0,
-    page: 1,
-    pageSize: 20,
-    totalPages: 0,
-  };
-  let isConnected = false;
-
-  if (hasDbUrl) {
-    try {
-      const [m, c, s] = await Promise.all([
-        getGlobalMetrics(),
-        getAvailableClubs(),
-        getFilteredSessions({ page: 1, pageSize: 20 }),
-      ]);
-      if (m) {
-        metrics = m;
-        clubs = c;
-        sessionsResult = s;
-        isConnected = true;
-      }
-    } catch {
-      isConnected = false;
-    }
-  }
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <DashboardView
-        initialMetrics={metrics}
-        initialClubs={clubs}
-        initialSessionsResult={sessionsResult}
-        isConnected={isConnected}
-      />
-    </div>
+    <main className="landing">
+      <LandingHero />
+      <LandingPillars />
+      <footer className="landing-footer">
+        <span>© {new Date().getFullYear()} Sitelseg® · Telecomunicaciones y seguridad</span>
+      </footer>
+    </main>
   );
 }

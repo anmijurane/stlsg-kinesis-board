@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sitelseg | Análisis",
+  title: "Kinesis Sitelseg | Análisis",
   description: "Base de la plataforma de análisis de Sitelseg.",
 };
 
