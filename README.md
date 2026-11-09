@@ -144,5 +144,66 @@ conexión configurada; si no existe, el resultado esperado es un mensaje indican
 que falta `DATABASE_URL`. Copiar `.env.example` sin editarla hará que intente
 conectar con los marcadores y falle, también con un mensaje sin secretos.
 
-La verificación de conexión real y del MCP contra la base queda pendiente hasta
-disponer de credenciales. No se incluyen consultas de negocio ni una base local.
+La conexión real se verificó mediante MCP y las métricas del Resumen se
+contrastaron con consultas independientes de lectura. Reproducir estas pruebas
+requiere credenciales locales; no se incluyen credenciales ni una base local.
+
+## Resumen y gráficas de análisis
+
+`/resumen` reúne 18 gráficas Nivo en cinco áreas. Cada tarjeta permite aplicar
+filtros independientes y abrir `/resumen/[grafica]` para explorar datos y tablas.
+La URL conserva los filtros de todas las tarjetas; «Volver a Resumen» los recupera.
+Pulsar una categoría o intervalo abre el detalle o filtra la página individual.
+Las tablas ofrecen la misma selección mediante teclado. Las vistas principales
+muestran hasta diez categorías; el detalle y las tablas conservan los resultados
+permitidos por los filtros.
+
+Los filtros de fechas se obtienen de los días registrados en cada fuente, en
+`America/Mexico_City`. No permiten fechas fuera de cobertura ni días sin datos.
+El periodo inicial comprende los últimos 30 días calendario hasta el máximo de
+la fuente. El día final se incluye completo. Los límites se vuelven a validar en
+servidor, incluso al modificar la URL manualmente. Los rangos pueden abarcar
+huecos históricos; no se añaden observaciones ficticias para rellenarlos.
+
+La aplicación consulta PostgreSQL directamente, con SQL parametrizado. El endpoint
+`GET /api/analytics/[grafica]` solo admite los identificadores registrados y sus
+filtros: no ejecuta SQL enviado por el cliente. Mantiene tres consultas de gráficas
+concurrentes por proceso como máximo, coalescencia de peticiones idénticas y caché
+en memoria de cinco minutos (hasta 128 resultados), con fecha de actualización
+visible. El catálogo de filtros también comparte una única carga por proceso. Los errores se aíslan por tarjeta.
+No se hacen consultas al importar módulos, durante el build ni cuando faltan
+credenciales. El esquema y los índices existentes no se modifican.
+
+### Interpretación de indicadores
+
+- Sesiones no equivale a personas únicas: la BD no contiene un identificador
+  persistente de usuario. No se infieren reproducciones ni rutinas completadas.
+- Duración: `last_seen_at - first_seen_at`, sin excluir sesiones largas. La gráfica
+  muestra promedio y mediana por intervalo. Profundidad y rebote usan las páginas y
+  eventos completos de las sesiones iniciadas en el periodo. Rebote significa
+  exactamente una página **o** ningún evento; cada sesión se cuenta una vez.
+- Consultas de rutinas: páginas `/routine/`, separadas de las páginas de ejercicios
+  o atención. Los ejercicios y grupos musculares usan eventos `exercise_view` y
+  categorías completas del catálogo, sin inferir entrenamiento efectivo.
+- Satisfacción general: `happy / (happy + neutral + sad)`. Las comparaciones por
+  sede usan el club de la sesión; las de rutina y ejercicio usan relaciones
+  directas de `routine_feedback` y `liked / (liked + disliked)`. No se asigna el
+  feedback general a una rutina por proximidad. Mostrar siempre la muestra, en
+  especial cuando hay pocas respuestas. Cada indicador respeta los filtros activos.
+- El embudo exige rutina, ejercicio y feedback en orden temporal dentro de una
+  sesión iniciada en el periodo. El filtro de rutina/nivel restringe las etapas
+  correspondientes; la primera etapa conserva la cohorte de sesiones. El feedback
+  general no se atribuye a una rutina. «Último paso observado» no confirma abandono.
+- Las sesiones distintas se cuentan dentro de cada categoría. Una sesión puede
+  consultar varias rutinas, niveles o días; sus sumas no son personas únicas.
+- Los comentarios se clasifican por reglas locales, con prioridad técnico →
+  ejecución → sugerencia → otros. Las palabras clave están visibles en la página
+  de comentarios. La clasificación es léxica y aproximada; no se envían textos a IA.
+
+### Validación adicional
+
+`npm run test:analytics` verifica fechas reales y huecos de cobertura, cambio de
+fuente, parámetros inválidos, independencia de filtros y prioridad de categorías.
+Además de lint, typecheck y build, contrastar las cifras con consultas de lectura
+MCP cuando se cambien las fórmulas. No registrar credenciales, comentarios ni
+mensajes crudos de PostgreSQL al diagnosticar fallos.
