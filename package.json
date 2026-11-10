@@ -1,5 +1,5 @@
 {
-  "name": "sitelseg-analytics",
+  "name": "stlsg-kinesis-board",
   "version": "0.1.0",
   "private": true,
   "engines": {
