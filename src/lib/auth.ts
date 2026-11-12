@@ -1,8 +1,8 @@
-export const OAUTH_SERVER = process.env.OAUTH_SERVER_URL || "http://localhost:3000";
-export const CLIENT_ID = process.env.OAUTH_CLIENT_ID || "app_1_rh";
-export const CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET || "secret_enterprise1_rh_2026";
-export const REDIRECT_URI = process.env.OAUTH_REDIRECT_URI || "http://localhost:5001/auth/callback";
-export const TENANT_ID = process.env.OAUTH_TENANT_ID || "enterprise1";
+export const OAUTH_SERVER = process.env.OAUTH_SERVER_URL || "";
+export const CLIENT_ID = process.env.OAUTH_CLIENT_ID || "";
+export const CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET || "";
+export const REDIRECT_URI = process.env.OAUTH_REDIRECT_URI || "";
+export const TENANT_ID = process.env.OAUTH_TENANT_ID || "";
 
 export interface IntrospectResponse {
   active: boolean;

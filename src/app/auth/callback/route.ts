@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "node:crypto";
 import { CLIENT_ID, CLIENT_SECRET, OAUTH_SERVER, REDIRECT_URI, TENANT_ID } from "@/lib/auth";
 
 export interface TokenEndpointResponse {
@@ -12,6 +13,8 @@ export interface TokenEndpointResponse {
 
 const GET = async (request: NextRequest) => {
 
+  console.log(`[ROUTE GET] auth/callback`);
+
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -19,6 +22,7 @@ const GET = async (request: NextRequest) => {
 
   if (error || !state || !code) {
     // TODO: Refactor common error and controlate on OAuth Server
+    console.log('ENTRO AL ERROR', { error });
     const errorUrl = new URL('/not-found', request.url);
     errorUrl.searchParams.set('error', 'not-state-or-code');
     return NextResponse.redirect(errorUrl.toString());
@@ -28,11 +32,13 @@ const GET = async (request: NextRequest) => {
   const stateSaved = request.cookies.get('oauth_state')?.value;
   const codeVerifier = request.cookies.get('oauth_code_verifier')?.value;
 
+  console.log({ stateSaved, codeVerifier });
+
   // 2. Get Cookie Validate state and code_verifier
   if (!stateSaved || !codeVerifier || stateSaved !== state) {
     // TODO: Refactor common error and controlate on OAuth Server
     const errorUrl = new URL('/auth/login', request.url);
-    errorUrl.searchParams.set('error', 'auth_failed');
+    errorUrl.searchParams.set('error', 'code-or-state-not-found');
     return NextResponse.redirect(errorUrl);
   }
 
@@ -49,16 +55,19 @@ const GET = async (request: NextRequest) => {
       client_secret: CLIENT_SECRET,
     });
 
+    const traceId = crypto.randomBytes(16).toString('hex');
+
     const tokenResponse = await fetch(`${OAUTH_SERVER}/oauth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json'
+        Accept: 'application/json',
+        'x-trace': traceId,
       },
       body: tokenPayload2.toString(),
     });
 
-    console.log('callback-route', tokenResponse.status);
+    console.log('callback-route', tokenResponse.status, { traceId });
 
     if (!tokenResponse.ok) {
       // TODO: Refactor common error and controlate on OAuth Server
