@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { CLIENT_ID, CLIENT_SECRET, OAUTH_SERVER, REDIRECT_URI, TENANT_ID } from "@/lib/auth";
+import { getBaseUrl } from "@/app/utils/getBaseUrl";
 
 export interface TokenEndpointResponse {
   access_token: string;
@@ -13,7 +14,9 @@ export interface TokenEndpointResponse {
 
 const GET = async (request: NextRequest) => {
 
-  console.log(`[ROUTE GET] auth/callback`);
+  const baseUrl = getBaseUrl(request);
+
+  console.log(`[ROUTE GET] auth/callback :: ${request.url}`);
 
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
@@ -37,7 +40,7 @@ const GET = async (request: NextRequest) => {
   // 2. Get Cookie Validate state and code_verifier
   if (!stateSaved || !codeVerifier || stateSaved !== state) {
     // TODO: Refactor common error and controlate on OAuth Server
-    const errorUrl = new URL('/auth/login', request.url);
+    const errorUrl = new URL('/auth/login', baseUrl);
     errorUrl.searchParams.set('error', 'code-or-state-not-found');
     return NextResponse.redirect(errorUrl);
   }
@@ -71,14 +74,14 @@ const GET = async (request: NextRequest) => {
 
     if (!tokenResponse.ok) {
       // TODO: Refactor common error and controlate on OAuth Server
-      const errorUrl = new URL('/auth/login', request.url);
+      const errorUrl = new URL('/auth/login', baseUrl);
       errorUrl.searchParams.set('error', 'auth_failed');
       return NextResponse.redirect(errorUrl);
     }
 
     const tokenData: TokenEndpointResponse = await tokenResponse.json();
 
-    const response = NextResponse.redirect(new URL('/resumen', request.url));
+    const response = NextResponse.redirect(new URL('/resumen', baseUrl));
 
     response.cookies.set('t', tokenData.access_token, {
       httpOnly: true,
@@ -107,7 +110,7 @@ const GET = async (request: NextRequest) => {
 
   } catch (error) {
     console.error(error);
-    return NextResponse.redirect(new URL("/auth/login?error=server_error", request.url));
+    return NextResponse.redirect(new URL("/auth/login?error=internal_server_error", baseUrl));
   }
 
 }
